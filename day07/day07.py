@@ -74,11 +74,11 @@ def dfs_part_two(node, res):
     return res
 
 
-"""PART ONE"""
+"""Part One"""
 result = dfs_part_one(root, 0)
 print(result)
 
-"""PART TWO"""
+"""Part Two"""
 USED_SIZE = root.val
 UNUSED_SIZE = FILESYSTEM_SIZE - USED_SIZE
 MIN_FREE_UP_SIZE = MIN_UNUSED_SIZE - UNUSED_SIZE
