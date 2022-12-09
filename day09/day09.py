@@ -1,65 +1,105 @@
-file = [line.strip() for line in open("input09.txt").readlines()]
+file = [[line.strip().split()[0], int(line.strip().split()[1])] for line in open("input09.txt").readlines()]
 
-heights = [[int(x) for x in line] for line in file]
-m = len(heights)
-n = len(heights[0])
+# construct big enough grid
+left_from_start = 0
+right_from_start = 0
+up_from_start = 0
+down_from_start = 0
+for line in file:
+    dire, num = line
+    match dire:
+        case 'L':
+            left_from_start += num
+        case 'R':
+            right_from_start += num
+        case 'U':
+            up_from_start += num
+        case 'D':
+            down_from_start += num
+grid = [[False for j in range(left_from_start+right_from_start+1)] for i in range(up_from_start+down_from_start+1)]
+s = [up_from_start, left_from_start]
 
 """Part One"""
-local_max_down = [[0 for j in range(n)] for i in range(m)]
-local_max_right = [[0 for j in range(n)] for i in range(m)]
-for i in range(m):
-    for j in range(n):
-        if i == 0 or j == 0 or i == m-1 or j == n-1:
-            local_max_down[i][j] = 0
-            local_max_right[i][j] = 0
-        else:
-            local_max_down[i][j] = max(local_max_down[i-1][j], heights[i-1][j])
-            local_max_right[i][j] = max(local_max_right[i][j-1], heights[i][j-1])
-
-local_max_up = [[0 for j in range(n)] for i in range(m)]
-local_max_left = [[0 for j in range(n)] for i in range(m)]
-for i in range(m-1, -1, -1):
-    for j in range(n-1, -1, -1):
-        if i == 0 or j == 0 or i == m-1 or j == n-1:
-            local_max_up[i][j] = 0
-            local_max_left[i][j] = 0
-        else:
-            local_max_up[i][j] = max(local_max_up[i+1][j], heights[i+1][j])
-            local_max_left[i][j] = max(local_max_left[i][j+1], heights[i][j+1])
-
-result = 2 * (m + n) - 4
-for i in range(1, m-1):
-    for j in range(1, n-1):
-        if heights[i][j] > min(local_max_up[i][j], local_max_down[i][j], local_max_left[i][j], local_max_right[i][j]):
-            result += 1
-print(result)
+h = s.copy()
+t = s.copy()
+grid[t[0]][t[1]] = True
+for line in file:
+    dire, num = line
+    for i in range(num):
+        h_old = h.copy()
+        match dire:
+            case 'L':
+                h[1] -= 1
+            case 'R':
+                h[1] += 1
+            case 'U':
+                h[0] -= 1
+            case 'D':
+                h[0] += 1
+        if abs(h[0]-t[0]) > 1 or abs(h[1]-t[1]) > 1:
+            t = h_old
+        grid[t[0]][t[1]] = True
+print(sum(sum(row) for row in grid))
 
 """Part Two"""
+knots = [s.copy() for i in range(10)]
+grid[knots[-1][0]][knots[-1][1]] = True
 
 
-def scenic_score(matrix, x, y):
-    res = 1
-    for i in range(x-1, -1, -1):
-        if i == 0 or matrix[i][y] >= matrix[x][y]:
-            res *= x - i
-            break
-    for i in range(x+1, m):
-        if i == m-1 or matrix[i][y] >= matrix[x][y]:
-            res *= x - i
-            break
-    for j in range(y-1, -1, -1):
-        if j == 0 or matrix[x][j] >= matrix[x][y]:
-            res *= y - j
-            break
-    for j in range(y+1, n):
-        if j == n-1 or matrix[x][j] >= matrix[x][y]:
-            res *= y - j
-            break
-    return res
+def print_matrix():
+    matrix = [['.' for j in range(left_from_start+right_from_start+1)] for i in range(up_from_start+down_from_start+1)]
+    matrix[s[0]][s[1]] = 's'
+    for i in range(len(knots)):
+        knot = knots[i]
+        matrix[knot[0]][knot[1]] = str(i)
+    for row in matrix:
+        for col in row:
+            print(col, end=" ")
+        print()
+    print()
 
 
-result = 1
-for i in range(1, m-1):
-    for j in range(1, n-1):
-        result = max(result, scenic_score(heights, i, j))
-print(result)
+# print_matrix()
+for line in file:
+    dire, num = line
+    for i in range(num):
+        h = knots[0]
+        match dire:
+            case 'L':
+                h[1] -= 1
+            case 'R':
+                h[1] += 1
+            case 'U':
+                h[0] -= 1
+            case 'D':
+                h[0] += 1
+        for j in range(1, 10):
+            t = knots[j]
+            if abs(h[0]-t[0]) > 1 or abs(h[1]-t[1]) > 1:
+                if h[0] < t[0]:
+                    t[0] -= 1
+                elif h[0] > t[0]:
+                    t[0] += 1
+                if h[1] < t[1]:
+                    t[1] -= 1
+                elif h[1] > t[1]:
+                    t[1] += 1
+            h = t
+        grid[t[0]][t[1]] = True
+    # print_matrix()
+
+print(sum(sum(row) for row in grid))
+
+"""
+for i in range(len(grid)):
+    row = grid[i]
+    for j in range(len(row)):
+        col = row[j]
+        if i == s[0] and j == s[1]:
+            print('s', end=" ")
+        elif col:
+            print('#', end=" ")
+        else:
+            print('.', end=" ")
+    print()
+"""
